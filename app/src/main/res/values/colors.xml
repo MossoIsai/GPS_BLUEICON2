@@ -6,5 +6,10 @@
     <color name="rosa">#34b952</color>
     <color name="azul">#20bbcc</color>
     <color name="azul2">#6420bbcc</color>
+    <color name="rojo">#f94f4b</color>
+    <color name="naranja">#FF9900</color>
+    <color name="verde">#009900</color>
+    <color name="amarillo2">#ffff00</color>
+
 
 </resources>

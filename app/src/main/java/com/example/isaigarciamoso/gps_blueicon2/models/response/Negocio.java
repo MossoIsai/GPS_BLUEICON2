@@ -17,14 +17,26 @@ public class Negocio {
     @SerializedName("Nombre")
     @Expose
     private String nombre;
+    @SerializedName("Eliminado")
+    @Expose
+    private  boolean eliminado;
 
     public Negocio() {
     }
 
-    public Negocio(int id, int negocioId, String nombre) {
+    public Negocio(int id, int negocioId, String nombre, boolean eliminado) {
         this.id = id;
         this.negocioId = negocioId;
         this.nombre = nombre;
+        this.eliminado = eliminado;
+    }
+
+    public boolean isEliminado() {
+        return eliminado;
+    }
+
+    public void setEliminado(boolean eliminado) {
+        this.eliminado = eliminado;
     }
 
     public int getId() {

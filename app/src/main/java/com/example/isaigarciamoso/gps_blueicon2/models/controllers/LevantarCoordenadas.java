@@ -55,6 +55,7 @@ import com.example.isaigarciamoso.gps_blueicon2.models.response.NegocioResponse;
 import com.example.isaigarciamoso.gps_blueicon2.models.response.ObjectListaHorario;
 import com.example.isaigarciamoso.gps_blueicon2.models.response.Semana;
 import com.example.isaigarciamoso.gps_blueicon2.models.response.SuccesResponse;
+import com.example.isaigarciamoso.gps_blueicon2.tools.AlertDialogLoading;
 import com.example.isaigarciamoso.gps_blueicon2.tools.Constantes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -80,6 +81,10 @@ import retrofit2.Response;
  */
 
 public class LevantarCoordenadas extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
+   //pruebas
+    private List<String> stringListHorarios = new ArrayList<>();
+    private List<String> diasList = new ArrayList<>();
+
 
     private GoogleMap googleMap;
     private LocationManager locationManager;
@@ -94,8 +99,6 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
     private List<Semana> semanaList;
     private boolean[] arrayBoolean = {false, false, false, false, false, false, false};
     private double longitud;
-    private double longitud2;
-    private double latitud2;
     private double latitud;
     private int negocioId;
     private int ID_;
@@ -104,7 +107,7 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
     String[] girosArray = {"Moda, Belleza", "Salud, Fitness", "Dónde Comer", "Cafeterías / Postrerías", "Vida Nocturna",
             "Entretenimiento", "Servicios", "Hogar", "Regalos y novedades", "Tecnología", "Tiendas departamentales", "Miscelaneas y Autoservicios", "Market", "Truck Market"};
     String[] estacionamiento = {"De la Plaza", "Frontal", "Techado", "No tiene"};
-    private  int idPrincipal;
+    private int idPrincipal;
     private int actualizar;
 
 
@@ -132,8 +135,7 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
     @BindView(R.id.observaciones) EditText observaciones;
     @BindView(R.id.fechaProximavista) EditText proximaVisita;
     @BindView(R.id.btnAgendarhorario) Button AgendarHorario;
-
-
+    @BindView(R.id.txtHorarioLetra) TextView horarioLetra;
 
 
     @Override
@@ -142,14 +144,12 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
         setContentView(R.layout.levantar_coordenas_layout);
         init(savedInstanceState);
 
+
         proximaVisita.setEnabled(false);
         if (!isOnline(LevantarCoordenadas.this)) {
             messageDialogWifi(getString(R.string.app_name), "Por favor revisa que cuentes con conexión a Internet.", "Ir a Configuracion");
         }
-
-
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -157,64 +157,64 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
             // TODO: Consider calling
             return;
         }
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,10*1000, 500, this);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10 * 1000, 500, this);
         Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-        try{
+        try {
+            latitud = location.getLatitude();
+            longitud = location.getLongitude();
 
-        latitud = location.getLatitude();
-        longitud =  location.getLongitude();
-
-        }catch (NullPointerException e ){
+        } catch (NullPointerException e) {
             System.out.println("Los valores son nullos");
         }
-
-
     }
+
     @RequiresApi(api = Build.VERSION_CODES.N)
-    @OnClick(R.id.btnAgendarhorario) void agendarHorario(){
+
+    @OnClick(R.id.btnAgendarhorario)
+    void agendarHorario() {
 
 
         final Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
         int mes = calendar.get(Calendar.MONTH);
-        int day = calendar.get( Calendar.DAY_OF_MONTH);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
 
         DatePickerDialog datePickerDialog = new DatePickerDialog(LevantarCoordenadas.this, new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker datePicker, int i, int i1, int i2) {
                 System.out.print("FUCK--->");
-               // proximaVisita.setText(i+"-"+i1+"-"+i2);
-                int  mes = i1+1;
+                // proximaVisita.setText(i+"-"+i1+"-"+i2);
+                int mes = i1 + 1;
                 String dia = "";
                 String mesStr = "";
-                if(i2 <= 9){
-                    dia = "0"+i2;
-                }else{
-                    dia = ""+i2;
+                if (i2 <= 9) {
+                    dia = "0" + i2;
+                } else {
+                    dia = "" + i2;
                 }
-                if(mes <= 9){
-                    mesStr = "0"+mes;
-                }else{
-                    mesStr = ""+mes;
+                if (mes <= 9) {
+                    mesStr = "0" + mes;
+                } else {
+                    mesStr = "" + mes;
                 }
-                final String fecha  = dia+"-"+mesStr+"-"+i;
-                final String fecha3 =  i+i1+i2+"";
+                final String fecha = dia + "-" + mesStr + "-" + i;
+                final String fecha3 = i + i1 + i2 + "";
 
-                TimePickerDialog timePickerDialog  =   new TimePickerDialog(LevantarCoordenadas.this, new TimePickerDialog.OnTimeSetListener() {
+                TimePickerDialog timePickerDialog = new TimePickerDialog(LevantarCoordenadas.this, new TimePickerDialog.OnTimeSetListener() {
                     @Override
                     public void onTimeSet(TimePicker timePicker, int i, int i1) {
-                        proximaVisita.setText(fecha+" "+i+":"+i1);
+                        proximaVisita.setText(fecha + " " + i + ":" + i1);
                         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm");
                         try {
-                             date = formatter.parse(fecha+" "+i+":"+i1);
+                            date = formatter.parse(fecha + " " + i + ":" + i1);
 
-                             fechaFormateada = formatter.parse(fecha+" "+i+":"+i1);
+                            fechaFormateada = formatter.parse(fecha + " " + i + ":" + i1);
                         } catch (ParseException e) {
                             e.printStackTrace();
                         }
 
                     }
-                },20,30,true);
+                }, 20, 30, true);
 
                 timePickerDialog.show();
             }
@@ -232,6 +232,9 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
 
     @OnClick(R.id.btnSave)
     void btnSaveInfoNegocio() {
+        btnSaveinfo.setEnabled(false);
+        final AlertDialogLoading alertDialogLoading = new AlertDialogLoading(LevantarCoordenadas.this);
+        alertDialogLoading.messageDialog("","");
 
         int diaNumero = 0;
         String nombreNegocio = nombre.getText().toString();
@@ -251,7 +254,7 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
         String estacionamiento = spinnerEstacionamiento.getSelectedItem().toString();
 
         boolean seleccionado = servicioDomicilio.isChecked();
-        boolean pendiente =  pendiete.isChecked();
+        boolean pendiente = pendiete.isChecked();
 
 
         for (ObjectListaHorario objectListaHorario : objectListaHorarios) {
@@ -287,44 +290,45 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
         armarHorario(deleteLastCharacter(textViewHorario.getText().toString()), textViewFomartoServidor);
         HttpNegocios httpNegocios = ClienteRetrofit.getSharedInstance().create(HttpNegocios.class);
 
-        if(idPrincipal ==  0  && negocioId == 0 && ID_ == 0) {
+        if (idPrincipal == 0 && negocioId == 0 && ID_ == 0) {
             /*System.out.println("REGISTAR ::::::::::::::::->ID_"+ ID_+" NEGOCIOID"+negocioId);*/
-            if(proximaVisita.getText().toString().equals("")){
+            if (proximaVisita.getText().toString().equals("")) {
                 fechaFormateada = null;
             }
 
             Call<SuccesResponse> responseCall = httpNegocios.sendNegocio(new NegocioRequest(ID_, null, nombreNegocio, String.valueOf(latitud), String.valueOf(longitud), dir, telefonoPNegocio, telefonoSNegocio, description, mail,
-                    face, twit, giro, estacionamiento, deleteLastCharacter(textViewHorario.getText().toString()), seleccionado, nameContacto, mailContact, phoneContacto,false,observaciones.getText().toString(),fechaFormateada,pendiente));
+                    face, twit, giro, estacionamiento, deleteLastCharacter(textViewHorario.getText().toString()), seleccionado, nameContacto, mailContact, phoneContacto, false, observaciones.getText().toString(), fechaFormateada, pendiente));
 
             responseCall.enqueue(new Callback<SuccesResponse>() {
                 @Override
                 public void onResponse(Call<SuccesResponse> call, Response<SuccesResponse> response) {
                     if (response.body().isEstatus()) {
+                        btnSaveinfo.setEnabled(true);
+                        alertDialogLoading.closeMessage();
                         Intent intent = new Intent(getApplicationContext(), ListaNegocios.class);
                         startActivity(intent);
                     } else {
                         System.out.println("OCURRIO UN ERROR AL ENVIAR LOS DATOS: ");
-                        Constantes.messageDialog("ERROR DE CONEXION","No se pudo establecer la conexion al servidor.",LevantarCoordenadas.this);
+                        Constantes.messageDialog("ERROR DE CONEXION", "No se pudo establecer la conexion al servidor.", LevantarCoordenadas.this);
                     }
                 }
+
                 @Override
                 public void onFailure(Call<SuccesResponse> call, Throwable t) {
                     System.out.println("ERROR DE CONEXION :" + t.getMessage());
-                    Constantes.messageDialog("ERROR DE CONEXIÓN: "+t.getMessage(),"No se pudo establecer la conexion al servidor.",LevantarCoordenadas.this);
-
-
+                    Constantes.messageDialog("ERROR DE CONEXIÓN: " + t.getMessage(), "No se pudo establecer la conexion al servidor.", LevantarCoordenadas.this);
                 }
             });
-        }else{
-          //  System.out.println("ACTUALIZAR ::::::::::::::::-> ID_"+ ID_+" NEGOCIOID"+negocioId+" ID_PRINCOPAL: "+idPrincipal);
-           // System.out.println();
+        } else {
+            //  System.out.println("ACTUALIZAR ::::::::::::::::-> ID_"+ ID_+" NEGOCIOID"+negocioId+" ID_PRINCOPAL: "+idPrincipal);
+            // System.out.println();
             //Actualizar
             //Caundo ya hay registro
-            if(proximaVisita.getText().toString().equals("")){
-               fechaFormateada = null;
+            if (proximaVisita.getText().toString().equals("")) {
+                fechaFormateada = null;
             }
-            if(negocioId == 0 && idPrincipal != 0) {
-            //  System.out.println("Fue registrado");
+            if (negocioId == 0 && idPrincipal != 0) {
+                //  System.out.println("Fue registrado");
                 Call<SuccesResponse> responseCall = httpNegocios.sendNegocio(new NegocioRequest(idPrincipal, null, nombreNegocio, String.valueOf(latitud), String.valueOf(longitud), dir, telefonoPNegocio, telefonoSNegocio, description, mail,
                         face, twit, giro, estacionamiento, deleteLastCharacter(textViewHorario.getText().toString()), seleccionado, nameContacto, mailContact, phoneContacto, false, observaciones.getText().toString(), fechaFormateada, pendiente));
 
@@ -332,6 +336,8 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
                     @Override
                     public void onResponse(Call<SuccesResponse> call, Response<SuccesResponse> response) {
                         if (response.body().isEstatus()) {
+                            btnSaveinfo.setEnabled(true);
+                            alertDialogLoading.closeMessage();
                             System.out.println("ACTUALIZO :::::::::::::::::::::->");
                             Intent intent = new Intent(getApplicationContext(), ListaNegocios.class);
                             startActivity(intent);
@@ -339,29 +345,30 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
                             System.out.println("OCURRIO UN ERROR AL ENVIAR LOS DATOS: ");
                         }
                     }
-
                     @Override
                     public void onFailure(Call<SuccesResponse> call, Throwable t) {
                         System.out.println("ERROR DE CONEXION :" + t.getMessage());
-                        Constantes.messageDialog("ERROR DE CONEXIÓN: "+t.getMessage(),"No se pudo establecer la conexion al servidor.",LevantarCoordenadas.this);
+                        Constantes.messageDialog("ERROR DE CONEXIÓN: " + t.getMessage(), "No se pudo establecer la conexion al servidor.", LevantarCoordenadas.this);
                     }
                 });
-            }else if(negocioId == idPrincipal ){
-             //   System.out.println("Ya esta registrado: "+nombreNegocio);
+            } else if (negocioId == idPrincipal) {
+                //   System.out.println("Ya esta registrado: "+nombreNegocio);
                 // Cuando ya un registro
 
-                if(proximaVisita.getText().toString().equals("")){
+                if (proximaVisita.getText().toString().equals("")) {
                     fechaFormateada = null;
                 }
-               // System.out.print("ID::::::>"+ID_+" NEGOCIOID::::>"+negocioId+"ID_PRINCIPAL: "+idPrincipal);
+                // System.out.print("ID::::::>"+ID_+" NEGOCIOID::::>"+negocioId+"ID_PRINCIPAL: "+idPrincipal);
 
-                Call<SuccesResponse> responseCall = httpNegocios.sendNegocio(new NegocioRequest(actualizar,negocioId, nombreNegocio, String.valueOf(latitud), String.valueOf(longitud), dir, telefonoPNegocio, telefonoSNegocio, description, mail,
+                Call<SuccesResponse> responseCall = httpNegocios.sendNegocio(new NegocioRequest(actualizar, negocioId, nombreNegocio, String.valueOf(latitud), String.valueOf(longitud), dir, telefonoPNegocio, telefonoSNegocio, description, mail,
                         face, twit, giro, estacionamiento, deleteLastCharacter(textViewHorario.getText().toString()), seleccionado, nameContacto, mailContact, phoneContacto, false, observaciones.getText().toString(), fechaFormateada, pendiente));
 
                 responseCall.enqueue(new Callback<SuccesResponse>() {
                     @Override
                     public void onResponse(Call<SuccesResponse> call, Response<SuccesResponse> response) {
                         if (response.body().isEstatus()) {
+                            btnSaveinfo.setEnabled(true);
+                            alertDialogLoading.closeMessage();
                             System.out.println("ACTUALIZO :::::::::::::::::::::->");
                             Intent intent = new Intent(getApplicationContext(), ListaNegocios.class);
                             startActivity(intent);
@@ -369,13 +376,10 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
                             System.out.println("OCURRIO UN ERROR AL ENVIAR LOS DATOS: ");
                         }
                     }
-
                     @Override
                     public void onFailure(Call<SuccesResponse> call, Throwable t) {
                         System.out.println("ERROR DE CONEXION :" + t.getMessage());
-                        Constantes.messageDialog("ERROR DE CONEXIÓN: "+t.getMessage(),"No se pudo establecer la conexion al servidor.",LevantarCoordenadas.this);
-
-
+                        Constantes.messageDialog("ERROR DE CONEXIÓN: " + t.getMessage(), "No se pudo establecer la conexion al servidor.", LevantarCoordenadas.this);
                     }
                 });
 
@@ -389,6 +393,7 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
 
     public void init(Bundle savedInstanceState) {
 
+
         ButterKnife.bind(this);
         mapView.onCreate(savedInstanceState);
         mapView.onResume();
@@ -401,7 +406,7 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
         actualizar = bundle.getInt("ID_TEMPORAL");
 
         //if (negocioId != 0) {
-            obtenerInformacionNegocio(negocioId); //obteniendo informacion del negocio
+        obtenerInformacionNegocio(negocioId); //obteniendo informacion del negocio
         //}
 
         principalTelefono.addTextChangedListener(new PhoneNumberFormattingTextWatcher());
@@ -438,7 +443,7 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
 
         this.googleMap.setMyLocationEnabled(true);
         //this.googleMap.getUiSettings().setMyLocationButtonEnabled(true);
-      //  this.googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitud,longitud),16f));
+        //  this.googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitud,longitud),16f));
 
     }
 
@@ -533,7 +538,7 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
 
                     for (ObjectListaHorario objectListaHorario : objectListaHorarios) {
                         for (Semana item : objectListaHorario.getDiasMarcados()) {
-                            System.out.println("ufkc: " + item.getNombreDia() + " " + item.isEstatus());
+                            System.out.println("fuck: " + item.getNombreDia() + " " + item.isEstatus());
                         }
                     }
                 }
@@ -610,10 +615,10 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
 
     public void obtenerInformacionNegocio(int idNegocio) {
 
-        if (idNegocio == 0 ) {
-
+        if (idNegocio == 0) {
+            /** :::::::::::  Obtener información del local :::::: **/
             HttpNegocios httpNegocios = ClienteRetrofit.getSharedInstance().create(HttpNegocios.class);
-            Call<NegocioResponse> responseCall = httpNegocios.obtenerDetalleNegocio(0,ID_);
+            Call<NegocioResponse> responseCall = httpNegocios.obtenerDetalleNegocio(0, ID_);
             responseCall.enqueue(new Callback<NegocioResponse>() {
                 @RequiresApi(api = Build.VERSION_CODES.N)
                 @Override
@@ -622,7 +627,8 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
                         System.out.println("obteniendo valores con exito: " + response.body().getNegocioRequest().toString());
                         DetalleNegocio detalleNegocio = response.body().getNegocioRequest();
 
-                        System.out.println("Horario: "+detalleNegocio.getHorario().toString());
+
+                        System.out.println("Horario: " + detalleNegocio.getHorario().toString());
 
                         nombre.setText(detalleNegocio.getNombre());
                         direccion.setText(detalleNegocio.getDireccion());
@@ -639,16 +645,15 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
                         observaciones.setText(detalleNegocio.getObservaciones());
                         proximaVisita.setText(formatterDate(detalleNegocio.getProximaVisita()));
 
-
-                        String ID_PADRE=  String.valueOf(detalleNegocio.getNegocioId());
-                        System.out.println("NEGOCIO 1 ------>: "+ID_PADRE);
+                        String ID_PADRE = String.valueOf(detalleNegocio.getNegocioId());
+                        System.out.println("NEGOCIO 1 ------>: " + ID_PADRE);
                         idPrincipal = detalleNegocio.getNegocioId();
 
 
-                        if(detalleNegocio.isPendiente()){
-                            servicioDomicilio.setChecked(true);
-                        }else{
-                            servicioDomicilio.setChecked(false);
+                        if (detalleNegocio.isPendiente()) {
+                            pendiete.setChecked(true);
+                        } else {
+                            pendiete.setChecked(false);
                         }
                         if (detalleNegocio.isServicioDomicilio()) {
                             servicioDomicilio.setChecked(true);
@@ -658,16 +663,19 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
 
 
                         //  System.out.println("HORARIO DEL NEGOCIO: "+detalleNegocio.getHorarioRespuestas().get(0).getHorarioFin());
-                        List<Semana> semanaList3 = new ArrayList<Semana>();
-                        final List<ObjectListaHorario> objectListaHorarios = new ArrayList<ObjectListaHorario>();
-                        String horaInicio = "";
-                        String horaeioFin = "";
+                        /**List<Semana> semanaList3 = new ArrayList<Semana>();
+                         final List<ObjectListaHorario> objectListaHorarios = new ArrayList<ObjectListaHorario>();
+                         String horaInicio = "";
+                         String horaeioFin = "";*/
 
                         System.out.println("HORARIO TEXTPLAIN: " + response.body().getNegocioRequest().getHorario());
-                        String cadenaAllHorarios = response.body().getNegocioRequest().getHorario();
-                        despedazarCadena(cadenaAllHorarios);
+                        System.out.println("HORARIO TEXTPLAIN: " + response.body().getNegocioRequest().getHorarioRespuestas());
 
-                        for (HorarioRespuesta respuesta : detalleNegocio.getHorarioRespuestas()) {
+
+                        String cadenaAllHorarios = response.body().getNegocioRequest().getHorario();
+                        //despedazarCadena(cadenaAllHorarios);
+
+                        /*for (HorarioRespuesta respuesta : detalleNegocio.getHorarioRespuestas()) {
                             System.out.println("aqui se va agregar la respuesta: " + respuesta.getDias());
                             switch (respuesta.getDias()) {
                                 case 0:
@@ -703,49 +711,56 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
 
                             }
 
-                        }
+                        }*/
 
-                        for (HorarioRespuesta item : detalleNegocio.getHorarioRespuestas()) {
-                            horaInicio = item.getHorarioInicio();
-                            horaeioFin = item.getHorarioFin();
-                        }
+                        /** for (HorarioRespuesta item : detalleNegocio.getHorarioRespuestas()) {
+                         horaInicio = item.getHorarioInicio();
+                         horaeioFin = item.getHorarioFin();
+                         }*/
 
-                        objectListaHorarios.add(new ObjectListaHorario(semanaList3, horaInicio, horaeioFin));
+                        /**objectListaHorarios.add(new ObjectListaHorario(semanaList3, horaInicio, horaeioFin));**/
 
-                        /**adapterHorario = new AdapterHorario(objectListaHorarios, new AdapterHorario.OnItem() {
-                        @Override public void onItemClick(ObjectListaHorario objectListaHorario) {
+                        /** for (int i = 0; i < girosArray.length; i++) {
+                         System.out.println("GIRO:  " + detalleNegocio.getGiro() + " -------> " + girosArray[i]);
+                         if (girosArray[i].equals(detalleNegocio.getGiro())) {
+                         spinnerGiro.setSelection(getIndex(spinnerGiro, girosArray[i]));
+                         }
+                         }
+                         for (int i = 0; i < estacionamiento.length; i++) {
+                         if (estacionamiento[i].equals(detalleNegocio.getEstacionamiento())) {
+                         spinnerEstacionamiento.setSelection(i);
+                         }
+                         }**/
 
-                        }
+                        //    System.out.println(detalleNegocio.getLalitud() + " " + detalleNegocio.getLongitud() + " " + detalleNegocio.getMailContacto() + " " +
+                        //          "" + detalleNegocio.getNombreContacto() + " " + detalleNegocio.isServicioDomicilio());
 
-                        @Override public void onItemLongClick(ObjectListaHorario objectListaHorario) {
-                        Constantes.messageDialogTwoButton("Eliminar","Deseas Eliminar el item selecionado",LevantarCoordenadas.this,objectListaHorarios,objectListaHorario,adapterHorario);
-                        adapterHorario.notifyDataSetChanged();
-                        }
-                        });
+                        List<HorarioRespuesta> horarioRespuestas = new ArrayList<HorarioRespuesta>();
 
-                         recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
-                         recyclerView.setAdapter(adapterHorario);**/
-
-
-                        for (int i = 0; i < girosArray.length; i++) {
-                            System.out.println("GIRO:  " + detalleNegocio.getGiro() + " -------> " + girosArray[i]);
-                            if (girosArray[i].equals(detalleNegocio.getGiro())) {
-                                System.out.println("GIRO:  " + detalleNegocio.getGiro() + " ------------------------> " + girosArray[i]);
-                                System.out.println("SELECCIONADO :::::: ->" + spinnerGiro.getSelectedItemPosition());
-                                System.out.println("SELECCIONA DENTRO DEL LA SECCION DE ITEM");
-                                //spinnerGiro.setSelection(i);
-                                spinnerGiro.setSelection(getIndex(spinnerGiro, girosArray[i]));
+                        horarioRespuestas = response.body().getNegocioRequest().getHorarioRespuestas();
+                        for (HorarioRespuesta horarioRespuesta : horarioRespuestas) {
+                            int cadena = horarioRespuesta.getDias();
+                            String diaLetra = "";
+                            if (cadena == 0) {
+                                diaLetra = "Domingo";
+                            } else if (cadena == 1) {
+                                diaLetra = "Lunes";
+                            } else if (cadena == 2) {
+                                diaLetra = "Martes";
+                            } else if (cadena == 3) {
+                                diaLetra = "Miercoles";
+                            } else if (cadena == 4) {
+                                diaLetra = "Jueves";
+                            } else if (cadena == 5) {
+                                diaLetra = "Viernes";
+                            } else if (cadena == 6) {
+                                diaLetra = "Sabado";
                             }
+                            System.out.println("DIA HORARIO: " + diaLetra + "-->" + horarioRespuesta.getHorarioInicio() + "-" + horarioRespuesta.getHorarioFin() + " ");
+                            horarioLetra.append(diaLetra + " " + horarioRespuesta.getHorarioInicio() + "-" + horarioRespuesta.getHorarioFin()+"\n");
+                            stringListHorarios.add(horarioRespuesta.getHorarioInicio()+"-"+horarioRespuesta.getHorarioFin());
+                            diasList.add(diaLetra);
                         }
-                        for (int i = 0; i < estacionamiento.length; i++) {
-                            //System.out.println("GIRO:  "+detalleNegocio.getGiro());
-                            if (estacionamiento[i].equals(detalleNegocio.getEstacionamiento())) {
-                                spinnerEstacionamiento.setSelection(i);
-                            }
-                        }
-
-                        System.out.println(detalleNegocio.getLalitud() + " " + detalleNegocio.getLongitud() + " " + detalleNegocio.getMailContacto() + " " +
-                                "" + detalleNegocio.getNombreContacto() + " " + detalleNegocio.isServicioDomicilio());
 
                     } else {
                         System.out.println("DEVULVE FALSE");
@@ -755,12 +770,11 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
                 @Override
                 public void onFailure(Call<NegocioResponse> call, Throwable t) {
                     System.out.println("OCURRIO UN ERROR CON LA CONSULTA DEL DETALLE: " + t.getMessage());
-                    Constantes.messageDialog("ERROR DE CONEXIÓN: "+t.getMessage(),"No se pudo establecer la conexion al servidor.",LevantarCoordenadas.this);
+                    Constantes.messageDialog("ERROR DE CONEXIÓN: " + t.getMessage(), "No se pudo establecer la conexion al servidor.", LevantarCoordenadas.this);
                 }
             });
-
+            /** ::::::: Obtener información con al condicion del else:::::::::::: **/
         } else {
-
 
             HttpNegocios httpNegocios = ClienteRetrofit.getSharedInstance().create(HttpNegocios.class);
             Call<NegocioResponse> responseCall = httpNegocios.obtenerDetalleNegocio(idNegocio, 0);
@@ -784,22 +798,19 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
                         nombreContacto.setText(detalleNegocio.getNombreContacto());
                         mailNegocio.setText(detalleNegocio.getMail());
                         observaciones.setText(detalleNegocio.getObservaciones());
-                        System.out.print("FECHA: ---->"+detalleNegocio.getProximaVisita());
+                        System.out.print("FECHA: ---->" + detalleNegocio.getProximaVisita());
 
-                           // Date date = formatter2.parse(detalleNegocio.getProximaVisita());
-                            proximaVisita.setText(formatterDate(detalleNegocio.getProximaVisita()));
-
-
+                        // Date date = formatter2.parse(detalleNegocio.getProximaVisita());
+                        proximaVisita.setText(formatterDate(detalleNegocio.getProximaVisita()));
 
                         ID_ = detalleNegocio.getId();
-                        String ID_PADRE=  String.valueOf(detalleNegocio.getNegocioId());
-                        System.out.println("NEGOCIO 2: ---->"+ID_PADRE);
+                        String ID_PADRE = String.valueOf(detalleNegocio.getNegocioId());
+                        System.out.println("NEGOCIO 2: ---->" + ID_PADRE);
                         idPrincipal = detalleNegocio.getNegocioId();
 
-
-                        if(detalleNegocio.isPendiente()){
+                        if (detalleNegocio.isPendiente()) {
                             pendiete.setChecked(true);
-                        }else{
+                        } else {
                             pendiete.setChecked(false);
                         }
                         if (detalleNegocio.isServicioDomicilio()) {
@@ -808,7 +819,43 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
                             servicioDomicilio.setChecked(false);
                         }
 
+                        System.out.println("HORARIO TEXTPLAIN " + response.body().getNegocioRequest().getHorario());
+                        System.out.println("HORARIO TEXTPLAIN " + response.body().getNegocioRequest().getHorarioRespuestas());
+                        List<HorarioRespuesta> horarioRespuestas = new ArrayList<HorarioRespuesta>();
 
+                        horarioRespuestas = response.body().getNegocioRequest().getHorarioRespuestas();
+                        for (HorarioRespuesta horarioRespuesta : horarioRespuestas) {
+                            int cadena = horarioRespuesta.getDias();
+                            String diaLetra = "";
+                            if (cadena == 0) {
+                                diaLetra = "Domingo";
+                            } else if (cadena == 1) {
+                                diaLetra = "Lunes";
+                            } else if (cadena == 2) {
+                                diaLetra = "Martes";
+                            } else if (cadena == 3) {
+                                diaLetra = "Miercoles";
+                            } else if (cadena == 4) {
+                                diaLetra = "Jueves";
+                            } else if (cadena == 5) {
+                                diaLetra = "Viernes";
+                            } else if (cadena == 6) {
+                                diaLetra = "Sabado";
+                            }
+                            System.out.println("DIA HORARIO: " + diaLetra + "-->" + horarioRespuesta.getHorarioInicio() + "-" + horarioRespuesta.getHorarioFin() + " ");
+                            horarioLetra.append(diaLetra + " " + horarioRespuesta.getHorarioInicio() + "-" + horarioRespuesta.getHorarioFin()+"\n");
+                            stringListHorarios.add(horarioRespuesta.getHorarioInicio()+"-"+horarioRespuesta.getHorarioFin());
+                            diasList.add(diaLetra);
+                        }
+
+                        for(int i = 0 ; i< stringListHorarios.size()-1; i++){
+                             System.out.println("GRUPO: "+i+"--COMPARO--"+(i+1));
+                            if(stringListHorarios.get(i).equals(stringListHorarios.get(i+1))){
+                                System.out.println("DIA CON EL MISMO HORARIO "+diasList.get(i));
+
+                            }
+
+                        }
                         //  System.out.println("HORARIO DEL NEGOCIO: "+detalleNegocio.getHorarioRespuestas().get(0).getHorarioFin());
                         List<Semana> semanaList3 = new ArrayList<Semana>();
                         final List<ObjectListaHorario> objectListaHorarios = new ArrayList<ObjectListaHorario>();
@@ -864,27 +911,12 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
 
                         objectListaHorarios.add(new ObjectListaHorario(semanaList3, horaInicio, horaeioFin));
 
-                        /**adapterHorario = new AdapterHorario(objectListaHorarios, new AdapterHorario.OnItem() {
-                        @Override public void onItemClick(ObjectListaHorario objectListaHorario) {
-
-                        }
-
-                        @Override public void onItemLongClick(ObjectListaHorario objectListaHorario) {
-                        Constantes.messageDialogTwoButton("Eliminar","Deseas Eliminar el item selecionado",LevantarCoordenadas.this,objectListaHorarios,objectListaHorario,adapterHorario);
-                        adapterHorario.notifyDataSetChanged();
-                        }
-                        });
-
-                         recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
-                         recyclerView.setAdapter(adapterHorario);**/
-
-
                         for (int i = 0; i < girosArray.length; i++) {
                             System.out.println("GIRO:  " + detalleNegocio.getGiro() + " -------> " + girosArray[i]);
                             if (girosArray[i].equals(detalleNegocio.getGiro())) {
-                                System.out.println("GIRO:  " + detalleNegocio.getGiro() + " ------------------------> " + girosArray[i]);
-                                System.out.println("SELECCIONADO :::::: ->" + spinnerGiro.getSelectedItemPosition());
-                                System.out.println("SELECCIONA DENTRO DEL LA SECCION DE ITEM");
+                                ///  System.out.println("GIRO:  " + detalleNegocio.getGiro() + " ------------------------> " + girosArray[i]);
+                                // System.out.println("SELECCIONADO :::::: ->" + spinnerGiro.getSelectedItemPosition());
+                                // System.out.println("SELECCIONA DENTRO DEL LA SECCION DE ITEM");
                                 //spinnerGiro.setSelection(i);
                                 spinnerGiro.setSelection(getIndex(spinnerGiro, girosArray[i]));
                             }
@@ -897,19 +929,18 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
                         }
 
 
+                        /*System.out.println(detalleNegocio.getLalitud() + " " + detalleNegocio.getLongitud() + " " + detalleNegocio.getMailContacto() + " " +
+                                "" + detalleNegocio.getNombreContacto() + " " + detalleNegocio.isServicioDomicilio());*/
 
-                        System.out.println(detalleNegocio.getLalitud() + " " + detalleNegocio.getLongitud() + " " + detalleNegocio.getMailContacto() + " " +
-                                "" + detalleNegocio.getNombreContacto() + " " + detalleNegocio.isServicioDomicilio());
-
-                    }else {
+                    } else {
                         System.out.println("DEVUELVE FALSE");
                     }
                 }
 
                 @Override
                 public void onFailure(Call<NegocioResponse> call, Throwable t) {
-                    System.out.println("OCURRIO UN ERROR: " + t.getMessage());
-                    Constantes.messageDialog("ERROR DE CONEXIÓN: "+t.getMessage(),"No se pudo establecer la conexion al servidor.",LevantarCoordenadas.this);
+                    ///  System.out.println("OCURRIO UN ERROR: " + t.getMessage());
+                    Constantes.messageDialog("ERROR DE CONEXIÓN: " + t.getMessage(), "No se pudo establecer la conexion al servidor.", LevantarCoordenadas.this);
                 }
             });
         }
@@ -954,15 +985,15 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
 
         latitud = location.getLatitude();
         longitud = location.getLongitude();
-        System.out.println("LATITUD: " + latitud + " LOOGITUD: " + longitud);
-        this.googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitud,longitud),16f));
-       // Toast.makeText(getApplicationContext(),"LATITUD: "+latitud+" LOOGITUD: "+longitud,Toast.LENGTH_SHORT).show();
+        //System.out.println("LATITUD: " + latitud + " LOOGITUD: " + longitud);
+        this.googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitud, longitud), 16f));
+        // Toast.makeText(getApplicationContext(),"LATITUD: "+latitud+" LOOGITUD: "+longitud,Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
         Log.d("GPS", "PROVIDER: " + provider + " ESTATUS: " + status + " extras: " + extras.toString());
-       // Toast.makeText(getApplicationContext(),"Actulizando: "+latitud+" "+longitud+" ",Toast.LENGTH_SHORT).show();
+        // Toast.makeText(getApplicationContext(),"Actulizando: "+latitud+" "+longitud+" ",Toast.LENGTH_SHORT).show();
 
     }
 
@@ -974,9 +1005,9 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
 
     @Override
     public void onProviderDisabled(String provider) {
-        System.out.println("PROVIDER : " + provider);
-       //Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-       //frfr startActivity(intent);
+        // System.out.println("PROVIDER : " + provider);
+        //Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+        //frfr startActivity(intent);
         /*Toast.makeText(getBaseContext(), "Es n",
              Toast.LENGTH_SHORT).show();*/
 
@@ -1092,7 +1123,6 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
                 adapterHorario.notifyDataSetChanged();
             }
         });
-
         recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         recyclerView.setAdapter(adapterHorario);
 
@@ -1100,17 +1130,17 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
     //Alert  dialog builder
 
 
-
     public static boolean isOnline(Context context) {
 
         ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo info = manager.getActiveNetworkInfo();
-        if(info != null && info.isConnectedOrConnecting()) {
+        if (info != null && info.isConnectedOrConnecting()) {
             return true;
         } else {
             return false;
         }
     }
+
     public void messageDialogWifi(String titulo, String mensaje, String btnNombre) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this)
                 .setTitle(titulo)
@@ -1127,9 +1157,10 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
         AlertDialog alert = builder.create();
         alert.show();
     }
+
     //2017-08-31T18:30:00
-    public String formatterDate(String fecha){
-        if(fecha != null) {
+    public String formatterDate(String fecha) {
+        if (fecha != null) {
             String[] pedazos = fecha.split("-");
             String anio = pedazos[0];
             String mes = pedazos[1];
@@ -1139,14 +1170,12 @@ public class LevantarCoordenadas extends AppCompatActivity implements OnMapReady
             String[] horas = horario.split(":");
             String hora = horas[0];
             String minutos = horas[1];
-        return dia+"-"+mes+"-"+anio+" "+hora+":"+minutos;
-        }else{
+            return dia + "-" + mes + "-" + anio + " " + hora + ":" + minutos;
+        } else {
             return "";
         }
 
     }
-
-
 
 
 }

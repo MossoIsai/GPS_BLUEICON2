@@ -1,6 +1,7 @@
 package com.example.isaigarciamoso.gps_blueicon2.adapters;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -58,6 +59,17 @@ public class AdapterNegocio extends ArrayAdapter<Negocio> {
         final Negocio negocio = getItem(position);
         textView.setText(negocio.getNombre());
         imageView.setImageResource(R.drawable.flecha);
+
+        if(negocio.isEliminado()){
+            listViewInflate.setBackgroundColor(Color.parseColor("#f94f4b"));
+            textView.setTextColor(Color.parseColor("#FFFFFF"));
+        }else{
+            listViewInflate.setBackgroundColor(Color.parseColor("#FFFFFF"));
+            textView.setTextColor(Color.parseColor("#000000"));
+
+
+        }
+
 
         return listViewInflate;
     }
